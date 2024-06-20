@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/serial_communication.dir/read.cpp.o -o serial_communication  -Wl,-rpath,/home/dohyeon/anaconda3/lib /home/dohyeon/anaconda3/lib/libboost_system.so.1.82.0 /home/dohyeon/anaconda3/lib/libboost_thread.so.1.82.0 
