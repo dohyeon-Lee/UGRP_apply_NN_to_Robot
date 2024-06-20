@@ -85,7 +85,7 @@ double lpf(double x_k, double y_km1, double Ts, double tau)
 int main() {
     
     torch::jit::script::Module module;
-    module = torch::jit::load("/home/dohyeon/UGRP_apply_NN_to_Robot/model/model_dataset4.pt");
+    module = torch::jit::load("/home/dohyeon/UGRP_apply_NN_to_Robot/model/model_dataset4.pt"); // you have to change path to fit your environment
     torch::Tensor state = torch::randn({1, 1, 1});
     torch::Tensor hn = torch::zeros({2, 1, 8});
     double Duration = 0.02; // 50Hz
@@ -107,6 +107,8 @@ int main() {
     // Main thread can do other tasks or wait for serial thread
     while (true) {
     std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+        
+        // reading acceleration from EBIMU
         {
             std::lock_guard<std::mutex> lock(data_mutex);
             if (!shared_data.empty() && shared_data.size() == 6) 
@@ -121,6 +123,8 @@ int main() {
             }
         }
 
+        // push input state (acceleration, hidden layer) to Network, and get output state ([theta, thetadot], hidden state)
+        
         state[0][0][0] = data[3];
         std::vector<torch::jit::IValue> inputs;
         inputs.push_back(state);
@@ -131,16 +135,17 @@ int main() {
         output_tensor = output->elements()[0].toTensor();        
         hn = output->elements()[1].toTensor();
 
+        // low pass filtering for network output
         double f_cut = 0.5;
         double tau = 1/(2*M_PI*f_cut);
         double state_theta_lowdata = output_tensor[0][0][0].item<double>();
         double state_theta_dot_lowdata = output_tensor[0][0][1].item<double>();
         double state_theta = lpf(state_theta_lowdata, before_state_theta, Duration, tau);
         double state_theta_dot = lpf(state_theta_dot_lowdata, before_state_theta_dot, Duration, tau);
-        std::cout << state_theta << std::endl;
-        
         before_state_theta = state_theta;
         before_state_theta_dot = state_theta_dot;
+
+
         // fix loop Hz
         std::chrono::duration<double>sec = std::chrono::system_clock::now() - start;
         if (sec.count() < Duration)
@@ -148,6 +153,8 @@ int main() {
         else
             std::cout << sec.count() << std::endl;
         
+        // print output theta(rad), thetadot(rad/s)
+        std::cout << state_theta << ", " << state_theta_dot <<  std::endl;
         // boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
     }
 
