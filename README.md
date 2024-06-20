@@ -18,7 +18,7 @@ cd build
 cmake ..
 make
 ```
-
+After ```cmake``` once, then you don't need to do again(except make new file). if code change, do ```make```. 
 # Run
 Before run, you have to get permission for usb.
 ```
