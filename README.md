@@ -1,3 +1,10 @@
 # Environment
 download libtorch at [libtorch](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.3.1%2Bcpu.zip)
-and unzip in ```UGRP_apply_NN_to_Robot/```
+and unzip at ```UGRP_apply_NN_to_Robot/```
+
+# build
+```
+cd build
+cmake ..
+make
+```
