@@ -85,7 +85,7 @@ double lpf(double x_k, double y_km1, double Ts, double tau)
 int main() {
     
     torch::jit::script::Module module;
-    module = torch::jit::load("/home/dohyeon/servingbot/model/model_dataset4.pt");
+    module = torch::jit::load("/home/dohyeon/UGRP_apply_NN_to_Robot/model/model_dataset4.pt");
     torch::Tensor state = torch::randn({1, 1, 1});
     torch::Tensor hn = torch::zeros({2, 1, 8});
     double Duration = 0.02; // 50Hz
