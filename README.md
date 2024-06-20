@@ -1,5 +1,5 @@
 # Environment
-download libtorch at [libtorch](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.3.1%2Bcpu.zip)
+Download libtorch at [libtorch](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.3.1%2Bcpu.zip)
 and unzip at ```UGRP_apply_NN_to_Robot/```
 
 You have to change file path in ```read.cpp```
@@ -12,9 +12,20 @@ int main() {
 ...
 ```
 
-# build
+# Build
 ```
 cd build
 cmake ..
 make
+```
+
+# Run
+Before run, you have to get permission for usb.
+```
+sudo chmod a+rw /dev/ttyUSB0
+```
+Then
+```
+cd build
+./serial_reader
 ```
