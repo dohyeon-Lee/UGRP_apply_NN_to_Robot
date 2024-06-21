@@ -14,6 +14,12 @@
 #include <torch/torch.h>
 #include <chrono>
 
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/QR>
+
+using namespace Eigen;
 using namespace boost::asio;
 using namespace boost::system;
 
@@ -103,7 +109,8 @@ int main() {
     boost::thread serial_thread(boost::bind(readFromSerial, boost::ref(serial)));
 
     double before_state_theta = 0;
-    double before_state_theta_dot = 0;    
+    double before_state_theta_dot = 0; 
+    double LQR_vel_U = 0;   
     // Main thread can do other tasks or wait for serial thread
     while (true) {
     std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
@@ -145,6 +152,16 @@ int main() {
         before_state_theta = state_theta;
         before_state_theta_dot = state_theta_dot;
 
+        // LQR apply
+        double endpoint_Xpos = 0; // get from robot forward kinematics
+        double endpoint_Xvel = 0; // get from robot forward kinematics
+        VectorXf LQR_state(4);
+        VectorXf LQR_K(4);
+        LQR_state << endpoint_Xpos, endpoint_Xvel, state_theta, state_theta_dot;
+        LQR_K << 10.0000,    4.8634,   -1.7900,   -0.2197;        // K from matlab sim
+        double LQR_acc_U = - LQR_K.dot(LQR_state);                // LQR input U  
+        LQR_vel_U += LQR_acc_U * Duration;                        // LQR input -> integrator -> LQR_velocity_input
+    
 
         // fix loop Hz
         std::chrono::duration<double>sec = std::chrono::system_clock::now() - start;
