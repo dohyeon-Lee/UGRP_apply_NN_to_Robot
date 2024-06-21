@@ -111,11 +111,13 @@ int main() {
     double before_state_theta = 0;
     double before_state_theta_dot = 0; 
     double LQR_vel_U = 0;   
-    // Main thread can do other tasks or wait for serial thread
+    
+    
+// Main thread can do other tasks or wait for serial thread
     while (true) {
     std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
         
-        // reading acceleration from EBIMU
+// reading acceleration from EBIMU
         {
             std::lock_guard<std::mutex> lock(data_mutex);
             if (!shared_data.empty() && shared_data.size() == 6) 
@@ -130,7 +132,7 @@ int main() {
             }
         }
 
-        // push input state (acceleration, hidden layer) to Network, and get output state ([theta, thetadot], hidden state)
+// push input state (acceleration, hidden layer) to Network, and get output state ([theta, thetadot], hidden state)
         
         state[0][0][0] = data[3];
         std::vector<torch::jit::IValue> inputs;
@@ -142,7 +144,7 @@ int main() {
         output_tensor = output->elements()[0].toTensor();        
         hn = output->elements()[1].toTensor();
 
-        // low pass filtering for network output
+// low pass filtering for network output
         double f_cut = 0.5;
         double tau = 1/(2*M_PI*f_cut);
         double state_theta_lowdata = output_tensor[0][0][0].item<double>();
@@ -152,7 +154,7 @@ int main() {
         before_state_theta = state_theta;
         before_state_theta_dot = state_theta_dot;
 
-        // LQR apply
+// LQR apply
         double endpoint_Xpos = 0; // get from robot forward kinematics
         double endpoint_Xvel = 0; // get from robot forward kinematics
         VectorXf LQR_state(4);
@@ -163,15 +165,16 @@ int main() {
         LQR_vel_U += LQR_acc_U * Duration;                        // LQR input -> integrator -> LQR_velocity_input
     
 
-        // fix loop Hz
+// fix loop Hz
         std::chrono::duration<double>sec = std::chrono::system_clock::now() - start;
         if (sec.count() < Duration)
             usleep(int((Duration - sec.count())*1000000));
         else
             std::cout << sec.count() << std::endl;
         
-        // print output theta(rad), thetadot(rad/s)
-        std::cout << state_theta << ", " << state_theta_dot <<  std::endl;
+// print output theta(rad), thetadot(rad/s)
+        std::cout << "network output: " << state_theta << ", " << state_theta_dot <<  std::endl;
+        std::cout << "LQR output: " << LQR_acc_U <<  std::endl <<  std::endl;
         // boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
     }
 
